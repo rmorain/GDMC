@@ -209,7 +209,6 @@ class FileLineFormatter(logging.Formatter):
 #
 # ```
 #
->>>>>>> e79f236bec8c0aa09859f0cc6b2975080bdd5819
 
 class FileLineFormatter(logging.Formatter):
     def format(self, record):
