@@ -209,6 +209,43 @@ class FileLineFormatter(logging.Formatter):
 #
 # ```
 #
+>>>>>>> e79f236bec8c0aa09859f0cc6b2975080bdd5819
+
+class FileLineFormatter(logging.Formatter):
+    def format(self, record):
+        record.__dict__['fileline'] = "%(module)s.py:%(lineno)d" % record.__dict__
+        record.__dict__['nameline'] = "%(name)s.py:%(lineno)d" % record.__dict__
+        return super(FileLineFormatter, self).format(record)
+
+
+#---------------------------------------------------------------------
+# NEW FEATURES HANDLING
+#
+# The idea is to be able to implement and test/use new code without stripping off the current one.
+# These features/new code will be in the released stuff, but unavailable until explicitly requested.
+#
+# The new features which are under development can be enabled using the 'new_features.def' file.
+# This file is a plain text file with one feature to enable a line.
+# The file is parsed and each feature is added to the builtins using the pattern 'mcenf_<feature>'.
+# The value for these builtins is 'True'.
+# Then, in the code, just check if the builtins has the key 'mcenf_<feature>' to use the new version of the code: 
+#
+# ```
+# def foo_old():
+#     # Was 'foo', code here is the one used unless the new version is wanted.
+#     [...]
+#
+# def foo_new():
+#     # This is the new version of the former 'foo' (current 'foo_old').
+#     [...]
+#
+# if __builtins__.get('mcenf_foo', False):
+#     foo = foo_new
+# else:
+#     foo = foo_old
+#
+# ```
+#
 
 
 class MCEdit(GLViewport):
@@ -1103,8 +1140,6 @@ class FakeStdOutErr:
         self.fd.close()
 
 if __name__ == "__main__":
-
-
     try:
         main(sys.argv)
     except (SystemExit, KeyboardInterrupt):
