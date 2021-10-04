@@ -10,47 +10,6 @@ mcedit.py
 
 Startup, main menu, keyboard configuration, automatic updating.
 """
-import splash
-import OpenGL
-import sys
-import os
-
-if "--debug-ogl" not in sys.argv:
-    OpenGL.ERROR_CHECKING = False
-
-import logging
-
-# Setup file and stderr logging.
-logger = logging.getLogger()
-
-# Set the log level up while importing OpenGL.GL to hide some obnoxious warnings about old array handlers
-logger.setLevel(logging.WARN)
-logger.setLevel(logging.DEBUG)
-
-logfile = 'mcedit.log'
-
-# if hasattr(sys, 'frozen'):
-#     if sys.platform == "win32":
-#         import esky
-#         app = esky.Esky(sys.executable)
-
-#         logfile = os.path.join(app.appdir, logfile)
-#
-if sys.platform == "darwin":
-    logfile = os.path.expanduser("~/Library/Logs/mcedit.log")
-else:
-    logfile = os.path.join(os.getcwdu(), logfile)
-fh = logging.FileHandler(logfile, mode="w")
-fh.setLevel(logging.DEBUG)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.WARN)
-
-if "--log-info" in sys.argv:
-    ch.setLevel(logging.INFO)
-if "--log-debug" in sys.argv:
-    ch.setLevel(logging.DEBUG)
-
 
 class FileLineFormatter(logging.Formatter):
     def format(self, record):
@@ -58,19 +17,6 @@ class FileLineFormatter(logging.Formatter):
         record.__dict__['nameline'] = "%(name)s.py:%(lineno)d" % record.__dict__
         return super(FileLineFormatter, self).format(record)
 
-
-fmt = FileLineFormatter(
-    '[%(levelname)8s][%(nameline)30s]:%(message)s'
-)
-fh.setFormatter(fmt)
-ch.setFormatter(fmt)
-
-logger.addHandler(fh)
-logger.addHandler(ch)
-import release
-start_msg = 'Starting MCEdit-Unified v%s'%release.TAG
-logger.info(start_msg)
-print '[ ****** ] ~~~~~~~~~~ %s'%start_msg
 
 #---------------------------------------------------------------------
 # NEW FEATURES HANDLING
@@ -100,117 +46,6 @@ print '[ ****** ] ~~~~~~~~~~ %s'%start_msg
 #
 # ```
 #
-if '--new-features' in sys.argv:
-    if not os.path.exists('new_features.def'):
-        logger.warn("New features requested, but file 'new_features.def' not found!")
-    else:
-        logger.warn("New features mode requested.")
-        lines = [a.strip() for a in open('new_features.def', 'r').readlines()]
-        for line in lines:
-            setattr(__builtins__, 'mcenf_%s'%line, True)
-        logger.warn("New features list loaded.")
-
-
-from version_utils import PlayerCache
-import directories
-import keys
-
-import albow
-import locale
-DEF_ENC = locale.getdefaultlocale()[1]
-if DEF_ENC is None:
-    DEF_ENC = "UTF-8"
-from albow.translate import _, getPlatInfo
-
-from albow.openglwidgets import GLViewport
-from albow.root import RootWidget
-
-from config import config
-
-albow.resource.resource_dir = directories.getDataDir()
-
-import panels
-import leveleditor
-
-# Building translation template
-if "-tt" in sys.argv:
-    sys.argv.remove('-tt')
-    # Overwrite the default marker to have one adapted to our specific needs.
-    albow.translate.buildTemplateMarker = """
-### THE FOLLOWING LINES HAS BEEN ADDED BY THE TEMPLATE UPDATE FUNCTION.
-### Please, consider to analyze them and remove the entries referring
-### to ones containing string formatting.
-###
-### For example, if you have a line already defined with this text:
-### My %{animal} has %d legs.
-### you may find lines like these below:
-### My parrot has 2 legs.
-### My dog has 4 legs.
-###
-### You also may have unwanted partial strings, especially the ones 
-### used in hotkeys. Delete them too. 
-### And, remove this paragraph, or it will be displayed in the program...
-"""
-    albow.translate.buildTemplate = True
-    albow.translate.loadTemplate()
-    # Save the language defined in config and set en_US as current one.
-    logging.warning('MCEdit is invoked to update the translation template.')
-    orglang = config.settings.langCode.get()
-    logging.warning('The actual language is %s.'%orglang)
-    logging.warning('Setting en_US as language for this session.')
-    config.settings.langCode.set('en_US')
-
-
-import mceutils
-import mcplatform
-
-# The two next switches '--debug-wm' and '--no-wm' are used to debug/disable the internal window handler.
-# They are exclusive. You can't debug if it is disabled.
-if "--debug-wm" in sys.argv:
-    mcplatform.DEBUG_WM = True
-if "--no-wm" in sys.argv:
-    mcplatform.DEBUG_WM = False
-    mcplatform.USE_WM = False
-else:
-    mcplatform.setupWindowHandler()
-
-DEBUG_WM = mcplatform.DEBUG_WM
-USE_WM = mcplatform.USE_WM
-
-
-#-# DEBUG
-if mcplatform.hasXlibDisplay and DEBUG_WM:
-    print '*** Xlib version', str(mcplatform.Xlib.__version__).replace(' ', '').replace(',', '.')[1:-1], 'found in',
-    if os.path.expanduser('~/.local/lib/python2.7/site-packages') in mcplatform.Xlib.__file__:
-        print 'user\'s',
-    else:
-        print 'system\'s',
-    print 'libraries.'
-#-#
-from mcplatform import platform_open
-import numpy
-from pymclevel.minecraft_server import ServerJarStorage
-
-import os
-import os.path
-import pygame
-from pygame import display, rect
-import pymclevel
-# import release
-import shutil
-import sys
-import traceback
-import threading
-
-from utilities.gl_display_context import GLDisplayContext
-
-#&# Prototype fro blocks/items names
-import mclangres
-#&#
-
-getPlatInfo(OpenGL=OpenGL, numpy=numpy, pygame=pygame)
-
-ESCAPE = '\033'
 
 
 class MCEdit(GLViewport):
@@ -1105,6 +940,171 @@ class FakeStdOutErr:
         self.fd.close()
 
 if __name__ == "__main__":
+    import splash
+    import OpenGL
+    import sys
+    import os
+
+    if "--debug-ogl" not in sys.argv:
+        OpenGL.ERROR_CHECKING = False
+
+    import logging
+
+# Setup file and stderr logging.
+    logger = logging.getLogger()
+
+# Set the log level up while importing OpenGL.GL to hide some obnoxious warnings about old array handlers
+    logger.setLevel(logging.WARN)
+    logger.setLevel(logging.DEBUG)
+
+    logfile = 'mcedit.log'
+
+# if hasattr(sys, 'frozen'):
+#     if sys.platform == "win32":
+#         import esky
+#         app = esky.Esky(sys.executable)
+
+#         logfile = os.path.join(app.appdir, logfile)
+#
+    if sys.platform == "darwin":
+        logfile = os.path.expanduser("~/Library/Logs/mcedit.log")
+    else:
+        logfile = os.path.join(os.getcwdu(), logfile)
+    fh = logging.FileHandler(logfile, mode="w")
+    fh.setLevel(logging.DEBUG)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.WARN)
+
+    if "--log-info" in sys.argv:
+        ch.setLevel(logging.INFO)
+    if "--log-debug" in sys.argv:
+        ch.setLevel(logging.DEBUG)
+    fmt = FileLineFormatter(
+        '[%(levelname)8s][%(nameline)30s]:%(message)s'
+    )
+    fh.setFormatter(fmt)
+    ch.setFormatter(fmt)
+
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+    import release
+    start_msg = 'Starting MCEdit-Unified v%s'%release.TAG
+    logger.info(start_msg)
+    print '[ ****** ] ~~~~~~~~~~ %s'%start_msg
+    if '--new-features' in sys.argv:
+        if not os.path.exists('new_features.def'):
+            logger.warn("New features requested, but file 'new_features.def' not found!")
+        else:
+            logger.warn("New features mode requested.")
+            lines = [a.strip() for a in open('new_features.def', 'r').readlines()]
+            for line in lines:
+                setattr(__builtins__, 'mcenf_%s'%line, True)
+            logger.warn("New features list loaded.")
+
+
+    from version_utils import PlayerCache
+    import directories
+    import keys
+
+    import albow
+    import locale
+    DEF_ENC = locale.getdefaultlocale()[1]
+    if DEF_ENC is None:
+        DEF_ENC = "UTF-8"
+    from albow.translate import _, getPlatInfo
+
+    from albow.openglwidgets import GLViewport
+    from albow.root import RootWidget
+
+    from config import config
+
+    albow.resource.resource_dir = directories.getDataDir()
+
+    import panels
+    import leveleditor
+
+# Building translation template
+    if "-tt" in sys.argv:
+        sys.argv.remove('-tt')
+        # Overwrite the default marker to have one adapted to our specific needs.
+        albow.translate.buildTemplateMarker = """
+### THE FOLLOWING LINES HAS BEEN ADDED BY THE TEMPLATE UPDATE FUNCTION.
+### Please, consider to analyze them and remove the entries referring
+### to ones containing string formatting.
+###
+### For example, if you have a line already defined with this text:
+### My %{animal} has %d legs.
+### you may find lines like these below:
+### My parrot has 2 legs.
+### My dog has 4 legs.
+###
+### You also may have unwanted partial strings, especially the ones 
+### used in hotkeys. Delete them too. 
+### And, remove this paragraph, or it will be displayed in the program...
+    """
+        albow.translate.buildTemplate = True
+        albow.translate.loadTemplate()
+        # Save the language defined in config and set en_US as current one.
+        logging.warning('MCEdit is invoked to update the translation template.')
+        orglang = config.settings.langCode.get()
+        logging.warning('The actual language is %s.'%orglang)
+        logging.warning('Setting en_US as language for this session.')
+        config.settings.langCode.set('en_US')
+
+
+    import mceutils
+    import mcplatform
+
+# The two next switches '--debug-wm' and '--no-wm' are used to debug/disable the internal window handler.
+# They are exclusive. You can't debug if it is disabled.
+    if "--debug-wm" in sys.argv:
+        mcplatform.DEBUG_WM = True
+    if "--no-wm" in sys.argv:
+        mcplatform.DEBUG_WM = False
+        mcplatform.USE_WM = False
+    else:
+        mcplatform.setupWindowHandler()
+
+    DEBUG_WM = mcplatform.DEBUG_WM
+    USE_WM = mcplatform.USE_WM
+
+
+#-# DEBUG
+    if mcplatform.hasXlibDisplay and DEBUG_WM:
+        print '*** Xlib version', str(mcplatform.Xlib.__version__).replace(' ', '').replace(',', '.')[1:-1], 'found in',
+        if os.path.expanduser('~/.local/lib/python2.7/site-packages') in mcplatform.Xlib.__file__:
+            print 'user\'s',
+        else:
+            print 'system\'s',
+        print 'libraries.'
+#-#
+    from mcplatform import platform_open
+    import numpy
+    from pymclevel.minecraft_server import ServerJarStorage
+
+    import os
+    import os.path
+    import pygame
+    from pygame import display, rect
+    import pymclevel
+# import release
+    import shutil
+    import sys
+    import traceback
+    import threading
+
+    from utilities.gl_display_context import GLDisplayContext
+
+#&# Prototype fro blocks/items names
+    import mclangres
+#&#
+
+    getPlatInfo(OpenGL=OpenGL, numpy=numpy, pygame=pygame)
+
+    ESCAPE = '\033'
+
+
     try:
         main(sys.argv)
     except (SystemExit, KeyboardInterrupt):
