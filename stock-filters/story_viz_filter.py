@@ -63,6 +63,7 @@ def perform(level, box, options):
     village_skeleton, terrain = create_minecraft_village(level, box, village_spec, num_evals=5, animate=False)
     build_road(level, box, terrain)
     build_village_skeleton(level, box, village_skeleton, terrain, village_spec.get_all_village_schematics())
+    print("Village built. Please enjoy :)")
 
 
 def build_village_skeleton(level, box, village_skeleton, terrain, schematic_files):
